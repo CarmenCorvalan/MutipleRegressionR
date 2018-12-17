@@ -82,34 +82,26 @@ trainSet <- data4[inTraining,]
 testSet <- data4[-inTraining,]
 
 # Train the model using the training sets and check score
-# prepare resampling method
-control2 <- trainControl(method="svmLinear2", number=5)
 
-SVMFit <- train(Volume ~ x4StarReviews, data=trainSet, method="svmLinear2", metric="RMSE", trControl=control)
+control2 <- trainControl(method="repeatedcv",
+                         number=20, 
+                         repeats = 5,
+                         predictionBounds=c(0,NA),
+                         )
+
+SVMFit <- train(Volume ~0+., 
+                data=trainSet, 
+                method="svmLinear2", 
+                metric="RMSE", 
+                trControl=control2)
 # display results
 print(SVMFit) 
+summary(SVMFit)
 
-#### SVM 
-# Setup for cross validation
-control <- trainControl(method="cv", number=5)
-set.seed(7)
-lmFit <- train(Volume ~ x4StarReviews, data=trainSet, method="lm", metric="RMSE", trControl=control)
-# display results
-print(lmFit) 
+Volume.pred2<-predict(SVMFit, testSet)
+Volume.pred2 <- as.integer(Volume.pred2)
+Volume.pred2
 
 
 
-SVM1 <- trainControl(method="repeatedcv",   
-                     repeats=5,
-                     summaryFunction=twoClassSummary,	
-                     classProbs=TRUE)
 
-
-#Train and Tune the SVM
-svm.tune <- trainSet(x=trainX,
-                  y= trainData$Class,
-                  method = "svmRadial",   # Radial kernel
-                  tuneLength = 9,					# 9 values of the cost function
-                  preProc = c("center","scale"),  # Center and scale data
-                  metric="ROC",
-                  trControl=ctrl)
